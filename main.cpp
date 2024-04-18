@@ -3,17 +3,21 @@
 #include<sstream>
 #include<windows.h>
 #include<vector>
-
 using namespace std;
 
-
-class NursingHome{
+class Government
+{
+    public:
+    int annual_come;
+};
+class NursingHome:public Government{
     private:
-    string name,age,BGroup,disease;
+    string name,age,BGroup,disease,doctorName,contactNumber;
+    int noDays;
     vector<pair<string,double>>med;
 
     public:
-    NursingHome():name(""),age(""),BGroup(""),disease(""){}
+    NursingHome():name(""),age(""),BGroup(""),disease(""),doctorName(""),contactNumber(""),noDays(0){}
 
     void setName(string name){
         this->name=name;
@@ -37,6 +41,18 @@ class NursingHome{
         this->disease=disease;
     }
 
+    void setDName(string dName){
+        this->doctorName=dName;
+    }
+
+    void setContactNumber(string contactNumber){
+        this->contactNumber=contactNumber;
+    }
+
+    void setNoDays(int noDays){
+        this->noDays=noDays;
+    }
+
     vector<pair<string,double>> getMed(){
         return this->med;
     }
@@ -57,16 +73,28 @@ class NursingHome{
         return this->disease;
     }
 
+    string getDName(){
+        return this->doctorName;
+    }
+
+    string getContactNumber(){
+        return this->contactNumber;
+    }
+
+    int getNoDays(){
+        return this->noDays;
+    }
+
 };
 double sum=0;
+int rate=2000;
 
-void discharge(){
+void discharge(NursingHome n){
     system("cls");
-
     string name;
     cout<<"Enter name of Patient: ";
     cin>>name;
-
+    bool checkers=true;
     ifstream infile("NursingHome.txt");
     ofstream outfile("NursingHome Temp.txt");
 
@@ -75,28 +103,46 @@ void discharge(){
 
     }
     else{
+        infile.seekg(0);
         string line;
         bool found=false;
-        while(getline(infile,line)){
+        
+        while(getline(infile,line))
+        {
             stringstream ss;
             ss<<line;
             string patientName;
             ss>>patientName;
             if(name == patientName){
                 found =true;
+                int noDays;
+                cout<<"Number of Days patient stayed:";
+                cin>>noDays;
+                n.setNoDays(noDays);
+                
+                sum+=(double)(noDays*rate);
                 cout<<"Total Bill is:"<<sum<<endl;
                 double val;
-                cout<<"Total amount "<<patientName<<"has:";
+                cout<<"Total amount "<<patientName<<" has:";
                 cin>>val;
-                if(val>=sum)
-                cout<<patientName <<"is Discharged!"<<endl;
+                cout<<"Enter the annual income of "<<patientName<<":";
+                cin>>n.annual_come;
+                if(val>=sum || n.annual_come<=100000){
+                    cout<<patientName <<" is Discharged!"<<endl;
+                }
+                
                 else
-                cout<<patientName <<"is not Discharged!"<<endl;     
-                sum=0;
+                {
+                    checkers=false;
+                    cout<<patientName <<" can't be Discharged!"<<endl;     
+                    
+                    
+                }
+                
             }
-            else{
+            else
+            {
                 outfile<<line<<endl;
-
             }
         }
         if(!found){
@@ -104,17 +150,25 @@ void discharge(){
         }
         
     }
-    outfile.close();
-    infile.close();
-    remove("NursingHome.txt");
-    rename("NursingHome Temp.txt","NursingHome.txt");
+    if(!checkers){
+        outfile.close();
+        infile.close();
+    }
+
+    else{
+        outfile.close();
+        infile.close();
+        remove("NursingHome.txt");
+        rename("NursingHome Temp.txt","NursingHome.txt");
+    }
+    
     Sleep(3000);
 }
 
 void admit(NursingHome n){
     system("cls");
     
-    string name,age,group,disease;
+    string name,age,group,disease,dName,contactNumber;
 
     cout<<"Enter Name of Patient:";
     cin>>name;
@@ -132,6 +186,13 @@ void admit(NursingHome n){
     cin>>disease;
     n.setDisease(disease);
 
+    cout<<"Enter contact number of the patient:";
+    cin>>contactNumber;
+    n.setContactNumber(contactNumber);
+
+    cout<<"Enter name of doctor assigned for the patient:";
+    cin>>dName;
+    n.setDName(dName);
 
     int cnt;
     cout<<"Number of medicines patient has to take:";
@@ -146,12 +207,13 @@ void admit(NursingHome n){
         n.setMed(medName,medCost);
     }
     
+
     ofstream outfile("NursingHome.txt",ios::app);
     if(!outfile.is_open()){
         cout<<"\tError:File can't open"<<endl;
     }
     else{
-        outfile<<"\t"<<n.getName()<<" : "<<n.getAge()<<" : "<<n.getBGroup()<<" : "<<n.getDisease()<<":"<<"Medicines: ";
+        outfile<<"\t"<<n.getName()<<" : "<<n.getAge()<<" : "<<n.getBGroup()<<" : "<<n.getDisease()<<" : "<<"Medicines: ";
         vector<pair<string,double>>p;
         p=n.getMed();
         int i=0;
@@ -159,7 +221,9 @@ void admit(NursingHome n){
         {
             outfile<<p[i].first<<" "<<p[i].second;
             i++;
-        }outfile<<endl;
+        }
+        outfile<<" : "<<n.getContactNumber()<<" : "<<n.getDName();
+        outfile<<endl;
         cout<<"Patient Admitted!"<<endl;
         
     }
@@ -186,7 +250,7 @@ int main(){
             admit(n1);
         }
         else if(val==2){
-            discharge();
+            discharge(n1);
         }
         else if(val==3){
             system("cls");
@@ -199,7 +263,7 @@ int main(){
 
     }
     
-    
-
     return 0;
 }
+
+
